@@ -1,5 +1,5 @@
-name: 'Platypus Action'
-description: 'Install and use Platypus to create native macOS applications from scripts.'
+name: 'Setup Platypus'
+description: 'Download and install the Platypus command line tool.'
 author: 'Sveinbjorn Thordarson'
 branding:
   icon: 'box'
@@ -9,47 +9,6 @@ inputs:
     description: 'The version of Platypus to install.'
     required: false
     default: '5.5.0'
-  script:
-    description: 'Path to the script to be bundled. If provided, Platypus will run to build the app. If omitted, only the setup is performed.'
-    required: false
-  name:
-    description: 'Name of the application (e.g., "My App").'
-    required: false
-  output:
-    description: 'Path for the generated application bundle (e.g., "build/MyApp.app"). Defaults to "MyApp.app" if not specified.'
-    required: false
-  interface:
-    description: 'Interface type (e.g., "Text Window", "Progress Bar", "None", "Web View", "Status Menu", "Droplet").'
-    required: false
-  identifier:
-    description: 'Bundle identifier (e.g., "org.example.myapp").'
-    required: false
-  author:
-    description: 'Name of the author.'
-    required: false
-  appIcon:
-    description: 'Path to an icns file for the application icon.'
-    required: false
-  interpreter:
-    description: 'Path to the interpreter (e.g., "/usr/bin/python3").'
-    required: false
-  appVersion:
-    description: 'Version string for the application.'
-    required: false
-  bundledFiles:
-    description: 'Files to bundle with the app. Can be comma-separated or multiline.'
-    required: false
-  optimizeNib:
-    description: 'Strip the bundled application nib file to reduce size (true/false).'
-    required: false
-    default: 'false'
-  overwrite:
-    description: 'Overwrite existing files at destination (true/false).'
-    required: false
-    default: 'true'
-  args:
-    description: 'Additional arguments to pass to the platypus command.'
-    required: false
 runs:
   using: "composite"
   steps:
@@ -81,81 +40,3 @@ runs:
         
         echo "Platypus installed successfully."
         platypus -v
-
-    - name: Build App
-      if: inputs.script != ''
-      shell: bash
-      run: |
-        # Construct command arguments
-        ARGS=()
-        
-        if [[ -n "${{ inputs.name }}" ]]; then
-          ARGS+=(-a "${{ inputs.name }}")
-        fi
-        
-        if [[ -n "${{ inputs.interface }}" ]]; then
-          ARGS+=(-o "${{ inputs.interface }}")
-        fi
-        
-        if [[ -n "${{ inputs.identifier }}" ]]; then
-          ARGS+=(-I "${{ inputs.identifier }}")
-        fi
-        
-        if [[ -n "${{ inputs.author }}" ]]; then
-          ARGS+=(-u "${{ inputs.author }}")
-        fi
-        
-        if [[ -n "${{ inputs.appIcon }}" ]]; then
-          ARGS+=(-i "${{ inputs.appIcon }}")
-        fi
-        
-        if [[ -n "${{ inputs.interpreter }}" ]]; then
-          ARGS+=(-p "${{ inputs.interpreter }}")
-        fi
-        
-        if [[ -n "${{ inputs.appVersion }}" ]]; then
-          ARGS+=(-V "${{ inputs.appVersion }}")
-        fi
-        
-        if [[ "${{ inputs.optimizeNib }}" == "true" ]]; then
-          ARGS+=(-l)
-        fi
-        
-        if [[ "${{ inputs.overwrite }}" == "true" ]]; then
-          ARGS+=(-y)
-        fi
-        
-        if [[ -n "${{ inputs.bundledFiles }}" ]]; then
-           # Handle multiline or comma-separated
-           RAW_FILES="${{ inputs.bundledFiles }}"
-           # Replace newlines with commas
-           RAW_FILES="${RAW_FILES//$''$
-/}"
-           
-           IFS=',' read -ra FILES <<< "$RAW_FILES"
-           for file in "${FILES[@]}"; do
-             # trim whitespace
-             file=$(echo "$file" | xargs)
-             if [[ -n "$file" ]]; then
-               ARGS+=(-f "$file")
-             fi
-           done
-        fi
-        
-        # Add extra args if provided. 
-        # Note: This simply splits by space, which might break quoted args. 
-        # For complex args, users should probably rely on script wrapper or simple args.
-        if [[ -n "${{ inputs.args }}" ]]; then
-          read -ra EXTRA_ARGS <<< "${{ inputs.args }}"
-          ARGS+=("${EXTRA_ARGS[@]}")
-        fi
-        
-        OUTPUT="${{ inputs.output }}"
-        if [[ -z "$OUTPUT" ]]; then
-          OUTPUT="MyApp.app"
-        fi
-        
-        SCRIPT="${{ inputs.script }}"
-        
-        echo "Building '$OUTPUT' from '$SCRIPT'..."
-        platypus "${ARGS[@]}" "$SCRIPT" "$OUTPUT"
