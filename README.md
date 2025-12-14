@@ -1,5 +1,7 @@
 # Platypus GitHub Action
 
+## Work in progress!
+
 This action installs [Platypus](https://sveinbjorn.org/platypus), a developer tool that creates native macOS applications from command line scripts (Shell, Python, Perl, Ruby, PHP, JavaScript, etc.).
 
 This action downloads and sets up the `platypus` command line tool so you can use it in your workflow.
